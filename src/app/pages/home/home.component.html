@@ -1,0 +1,166 @@
+<div class="w-full mx-auto p-6 bg-white shadow-lg rounded-lg">
+  <!-- Workout Form -->
+  <form [formGroup]="workoutForm" (ngSubmit)="addWorkout()" class="space-y-5">
+    <div>
+      <label class="block text-gray-600 font-medium mb-1">User Name</label>
+      <input
+        type="text"
+        required=""
+        formControlName="name"
+        placeholder="Enter your name"
+        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring focus:ring-blue-300 focus:border-blue-400 transition"
+      />
+    </div>
+    <ng-container *ngIf="invalid && workoutForm.controls['name'].invalid">
+      <p class="text-red-600">Name is required.</p>
+    </ng-container>
+
+    <div>
+      <label class="block text-gray-600 font-medium mb-1">Workout Type</label>
+      <select
+        formControlName="workoutType"
+        class="w-full cursor-pointer border border-gray-300 p-3 rounded-lg shadow-sm bg-white focus:ring focus:ring-blue-300 focus:border-blue-400 transition"
+      >
+        <ng-container *ngFor="let type of workoutTypes">
+          <ng-container *ngIf="type !== 'ALL'">
+            <option [value]="type">
+              {{ type }}
+            </option>
+          </ng-container>
+        </ng-container>
+      </select>
+    </div>
+    <ng-container
+      *ngIf="invalid && workoutForm.controls['workoutType'].invalid"
+    >
+      <p class="text-red-600">Workout Type is required.</p>
+    </ng-container>
+
+    <div>
+      <label class="block text-gray-600 font-medium mb-1">Minutes</label>
+      <input
+        type="number"
+        formControlName="minutes"
+        placeholder="Enter minutes"
+        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring focus:ring-blue-300 focus:border-blue-400 transition"
+      />
+    </div>
+    <ng-container *ngIf="invalid && workoutForm.controls['minutes'].invalid">
+      <p class="text-red-600">Minute is required.</p>
+    </ng-container>
+
+    <button
+      type="submit"
+      class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold p-3 rounded-lg shadow-md transition transform"
+    >
+      Add Workout
+    </button>
+  </form>
+
+  <!-- Filter & Search Bar -->
+  <div class="flex flex-col sm:flex-row justify-between items-center mt-6">
+    <p class="text-xl font-semibold text-gray-700">All Workout Details</p>
+
+    <div class="flex flex-col sm:flex-row gap-4 mt-4 sm:mt-0 w-full sm:w-auto">
+      <select
+        class="border cursor-pointer border-gray-300 p-3 rounded-lg focus:ring focus:ring-blue-300 w-full sm:w-40"
+        (change)="onSelectionChange($event)"
+        [value]="workoutsOpt.ALL"
+      >
+        <option *ngFor="let type of workoutTypes" [value]="type">
+          {{ type }}
+        </option>
+      </select>
+
+      <input
+        type="text"
+        class="border border-gray-300 p-3 rounded-lg focus:ring focus:ring-blue-300 w-full sm:w-72"
+        (keyup)="applyFilter($event)"
+        placeholder="Search here..."
+        #input
+      />
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto mt-6">
+    <table
+      class="w-full border-collapse border border-gray-300 shadow-sm rounded-lg"
+    >
+      <thead class="bg-gray-100 text-gray-700">
+        <tr>
+          <th class="border border-gray-300 p-3 text-left">ID</th>
+          <th class="border border-gray-300 p-3 text-left">Name</th>
+          <th class="border border-gray-300 p-3 text-left">Workout Type</th>
+          <th class="border border-gray-300 p-3 text-left">No. of Workouts</th>
+          <th class="border border-gray-300 p-3 text-left">Total Minutes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let user of users | async"
+          class="hover:bg-gray-50 transition"
+        >
+          <td class="border border-gray-300 p-3">{{ user?.id }}</td>
+          <td class="border border-gray-300 p-3 font-semibold">
+            {{ user?.name | titlecase }}
+          </td>
+          <td class="border border-gray-300 p-3">
+            <div class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let item of user?.workouts"
+                class="bg-gray-200 px-2 py-1 rounded-md text-sm"
+              >
+                {{ item?.type }}
+              </span>
+            </div>
+          </td>
+          <td class="border border-gray-300 p-3 text-center">
+            {{ user?.noOfWorkouts }}
+          </td>
+          <td class="border border-gray-300 p-3 text-center">
+            {{ getTotalMinutes(user.workouts) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flex justify-end gap-4 items-center mt-4">
+    <!-- Pagination Buttons -->
+    <div class="flex items-center gap-2">
+      <button
+        class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition"
+        (click)="prevPage()"
+        [disabled]="(currentPage$ | async) === 1"
+      >
+        Previous
+      </button>
+      <span class="text-gray-700 font-medium"
+        >Page {{ currentPage$ | async }} of {{ totalPages$ | async }}</span
+      >
+      <button
+        class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition"
+        (click)="nextPage()"
+        [disabled]="(currentPage$ | async) === (totalPages$ | async)"
+      >
+        Next
+      </button>
+    </div>
+    <!-- Items Per Page -->
+    <div class="flex items-center gap-2">
+      <label for="itemsPerPage" class="text-gray-700 font-medium"
+        >Items per page:</label
+      >
+      <select
+        id="itemsPerPage"
+        class="border border-gray-300 p-2 rounded-lg focus:ring focus:ring-blue-300"
+        [value]="itemsPerPage$ | async"
+        (change)="updatePagination($event)"
+      >
+        <option *ngFor="let count of [5, 10, 20, 50]" [value]="count">
+          {{ count }}
+        </option>
+      </select>
+    </div>
+  </div>
+</div>

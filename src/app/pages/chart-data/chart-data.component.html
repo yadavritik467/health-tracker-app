@@ -1,0 +1,23 @@
+<div class="bg-white grid grid-cols-12 h-fit rounded-md p-4">
+  <div class="col-span-4 max-lg:col-span-12 h-fit p-2 border rounded-md">
+    <ng-container *ngFor="let user of userWorkouts; let i = index">
+      <p
+        [ngClass]="
+          userIndex === i ? 'bg-blue-600 text-white' : 'bg-white text-black'
+        "
+        (click)="updateUserChart(i)"
+        class="w-full hover:bg-blue-600 rounded-md my-2 hover:text-white text-center p-2 cursor-pointer"
+      >
+        {{ user.name }}
+      </p>
+    </ng-container>
+  </div>
+  <div class="col-span-8 max-lg:col-span-12 px-4 flex flex-col gap-4">
+    <p class="content text-black py-5">
+      {{ userWorkouts[userIndex].name }}'s Workout Progress
+    </p>
+    <div class="w-full h-[500px]">
+      <canvas id="workoutChart"></canvas>
+    </div>
+  </div>
+</div>
